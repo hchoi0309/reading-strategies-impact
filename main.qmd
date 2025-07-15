@@ -5,8 +5,8 @@ format:
     html:
         code-fold: true
         code-summary: "Show code"
-        css: styles.css
         toc: true
+        theme: cosmo
 execute:
     echo: true
     warning: false
@@ -15,25 +15,27 @@ execute:
 ---
 
 ## Introduction
+
 This project aims to investigate the impact of different reading strategies — **highlighting, underlining, and reading without annotations** — on reading comprehension. Using a **within-subjects** experimental design, participants engage with standardized reading passages and complete comprehension tests under each condition. The study also explores **the relationship between the amount of text highlighted/underlined and comprehension scores**.
 
 ### Objectives
-- To determine if highlighting or underlining improves reading comprehension compared to reading without annotations.
-- To investigate any potential relationship between the amount of text highlighted/underlined and comprehension scores.
+
+-   To determine if highlighting or underlining improves reading comprehension compared to reading without annotations.
+-   To investigate any potential relationship between the amount of text highlighted/underlined and comprehension scores.
 
 ### Hypothesis
-**Null Hypothesis ($H_O$):**
-There is no significant difference in reading comprehension scores across the three strategies (highlighting, underlining, and reading without annotations).
 
-**Alternative Hypothesis ($H_A$):**
-There is a significant difference in reading comprehension scores across the three strategies, with at least one strategy leading to higher scores.
+**Null Hypothesis (**$H_O$): There is no significant difference in reading comprehension scores across the three strategies (highlighting, underlining, and reading without annotations).
+
+**Alternative Hypothesis (**$H_A$): There is a significant difference in reading comprehension scores across the three strategies, with at least one strategy leading to higher scores.
 
 ### Experimental Design
-1. Participants read three passages from practice SAT exams each with a different strategy, in a randomized order. After reading each passage, they solve the corresponding questions. Each passage has an upper time limit of 13 minutes to be read and solved.
-2. The effects of reading strategies are analyzed using ANOVA on the obtained scores. If there is a significant difference, post-hoc tests are conducted to identify which strategies differ.
-3. Different assumptions for ANOVA are checked, including normality, homogeneity of variance and sphericity.
-4. The proportion of text highlighted/underlined is extracted by analyzing pdfs of the passages that were annotated by participants.
-5. The relationship between the proportion of text highlighted/underlined and comprehension scores is analyzed using linear regression.
+
+1.  Participants read three passages from practice SAT exams each with a different strategy, in a randomized order. After reading each passage, they solve the corresponding questions. Each passage has an upper time limit of 13 minutes to be read and solved.
+2.  The effects of reading strategies are analyzed using ANOVA on the obtained scores. If there is a significant difference, post-hoc tests are conducted to identify which strategies differ.
+3.  Different assumptions for ANOVA are checked, including normality, homogeneity of variance and sphericity.
+4.  The proportion of text highlighted/underlined is extracted by analyzing pdfs of the passages that were annotated by participants.
+5.  The relationship between the proportion of text highlighted/underlined and comprehension scores is analyzed using linear regression.
 
 Overall, this study aims to contribute to a deeper understanding of effective reading strategies and their implications for study habits and learning outcomes.
 
@@ -110,6 +112,7 @@ ggplot(df, aes(x = age)) +
   theme_minimal() + 
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
 As the experiment was conducted on high school students preparing for the SAT test, the age range is relatively narrow with most participants being 16-17 years old.
 
 ```{r}
@@ -120,6 +123,7 @@ ggplot(df, aes(x = gender)) +
   theme_minimal() + 
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
 As both boys and girls have been roughly equally represented in this experiment, this ensures that the results are not heavily impacted by gender.
 
 ```{r}
@@ -277,6 +281,7 @@ ggplot(df, aes(highlighted_portion, highlight_score)) +
   theme_minimal() + 
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
 The three fitted lines represent different regression models: linear, quadratic, and logarithmic. To check if any of these models are statistically significant, we will fit each model and extract important metrics such as R-squared, adjusted R-squared, p-value, and RMSE(Root Mean Squared Error) for comparison.
 
 ```{r}
@@ -306,8 +311,9 @@ model_metrics <- bind_rows(
 
 model_metrics
 ```
+
 The table above shows the important metrics for each regression model. The R-squared and adjusted R-squared values indicate how well the model explains the variance in the data. The p-value indicates whether the model is statistically significant, and the RMSE provides a measure of the model's prediction error.
 
-Looking at the results, it can be noted that the quadratic model best captures the relationship between the amount of text highlighted and the test scores. While the model explains a low amount of variance (Adjusted R^2^ = 0.161), it is the only fit that is statistically significant (p-value < 0.05) and has the lowest RMSE compared to that of the other two models. On the other hand, we fail to reject the null hypothesis of zero coefficients for the linear and logarithmic models.
+Looking at the results, it can be noted that the quadratic model best captures the relationship between the amount of text highlighted and the test scores. While the model explains a low amount of variance (Adjusted R^2^ = 0.161), it is the only fit that is statistically significant (p-value \< 0.05) and has the lowest RMSE compared to that of the other two models. On the other hand, we fail to reject the null hypothesis of zero coefficients for the linear and logarithmic models.
 
-A quadratic regression explained 22% of the variance in comprehension scores (R^2^ = 0.216) and provided a significantly better fit than a linear model (R^2^ = 0.004). The fitted curve peaks at 38 % text highlighted, where the predicted score is about 91 points. Linear and log-linear alternatives were non-significant (p-value > 0.05) and yielded lower adjusted R^2^ and higher RMSE.
+A quadratic regression explained 22% of the variance in comprehension scores (R^2^ = 0.216) and provided a significantly better fit than a linear model (R^2^ = 0.004). The fitted curve peaks at 38 % text highlighted, where the predicted score is about 91 points. Linear and log-linear alternatives were non-significant (p-value \> 0.05) and yielded lower adjusted R^2^ and higher RMSE.
