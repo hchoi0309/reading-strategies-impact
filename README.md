@@ -1,2 +1,2 @@
 # reading-strategies-impact
-Analysis of the impact of different reading techniques (e.g., underlining, highlighting) on reading comprehension scores using ANOVA
+This <a href="https://hchoi0309.github.io/reading-strategies-impact/index.html">project</a> aims to investigate the impact of different reading strategies — highlighting, underlining, and reading without annotations — on reading comprehension. Using a within-subjects experimental design, participants engage with standardized reading passages and complete comprehension tests under each condition. The study also explores the relationship between the amount of text highlighted/underlined and comprehension scores.
