@@ -1,0 +1,313 @@
+---
+title: "Impact of Different Reading Strategies on Text Comprehension"
+author: "Hayden Choi"
+format: 
+    html:
+        code-fold: true
+        code-summary: "Show code"
+        css: styles.css
+        toc: true
+execute:
+    echo: true
+    warning: false
+    message: false
+    fig-align: center
+---
+
+## Introduction
+This project aims to investigate the impact of different reading strategies — **highlighting, underlining, and reading without annotations** — on reading comprehension. Using a **within-subjects** experimental design, participants engage with standardized reading passages and complete comprehension tests under each condition. The study also explores **the relationship between the amount of text highlighted/underlined and comprehension scores**.
+
+### Objectives
+- To determine if highlighting or underlining improves reading comprehension compared to reading without annotations.
+- To investigate any potential relationship between the amount of text highlighted/underlined and comprehension scores.
+
+### Hypothesis
+**Null Hypothesis ($H_O$):**
+There is no significant difference in reading comprehension scores across the three strategies (highlighting, underlining, and reading without annotations).
+
+**Alternative Hypothesis ($H_A$):**
+There is a significant difference in reading comprehension scores across the three strategies, with at least one strategy leading to higher scores.
+
+### Experimental Design
+1. Participants read three passages from practice SAT exams each with a different strategy, in a randomized order. After reading each passage, they solve the corresponding questions. Each passage has an upper time limit of 13 minutes to be read and solved.
+2. The effects of reading strategies are analyzed using ANOVA on the obtained scores. If there is a significant difference, post-hoc tests are conducted to identify which strategies differ.
+3. Different assumptions for ANOVA are checked, including normality, homogeneity of variance and sphericity.
+4. The proportion of text highlighted/underlined is extracted by analyzing pdfs of the passages that were annotated by participants.
+5. The relationship between the proportion of text highlighted/underlined and comprehension scores is analyzed using linear regression.
+
+Overall, this study aims to contribute to a deeper understanding of effective reading strategies and their implications for study habits and learning outcomes.
+
+## Initial Setup
+
+The first step is to load the required packages and read the data file containing participant responses. We then inspect the first few rows of the dataset to understand its structure.
+
+```{r}
+# Load required packages
+library(readxl)
+library(tidyverse)
+library(rstatix)
+library(ggpubr)
+library(car)
+library(knitr)
+library(kableExtra)
+library(afex)
+library(emmeans)
+library(broom)
+```
+
+```{r}
+# Read the data file containing participant responses and inspect the first few rows
+df <- read_excel("./data/participant_responses.xls")
+head(df)
+```
+
+## Data Validation and Preprocessing
+
+The next step is to validate the data and perform any necessary preprocessing steps to ensure that the data is clean and ready for analysis.
+
+```{r}
+# Turn the categorical variable "gender" into a factor
+df$gender <- factor(df$gender, levels = c("f", "m"), labels = c("Female", "Male"))
+# Verify whether the gender variable has been successfully transformed into a factor
+print(is.factor(df$gender))
+```
+
+```{r}
+# Check for any missing values in the dataframe
+missing_values <- df %>%
+  summarise_all(~sum(is.na(.)))
+print(missing_values)
+```
+
+```{r}
+# Stack the data to convert it from wide to long format for easier analysis and visualization
+df_long <- df %>%
+  select(-gender, -age) %>%
+  pivot_longer(
+    cols = c(passive_score, underline_score, highlight_score),
+    names_to = "strategy",
+    values_to = "score") %>%
+  arrange(strategy, id)
+df_long$strategy <- as.factor(df_long$strategy)
+df_long$id <- as.factor(df_long$id)
+head(df_long)
+```
+
+```{r}
+# Show the overall summary of statistics for the dataframe
+summary(df)
+```
+
+## Exploratory Data Analysis
+
+We then perform exploratory data analysis to understand the distribution of participant characteristics and reading comprehension scores across different strategies.
+
+```{r}
+# Visualize the distribution of the age of participants
+ggplot(df, aes(x = age)) +
+  geom_histogram(binwidth = 1, fill = "darkseagreen", alpha = 0.5, colour="darkseagreen") + 
+  labs(title = "Distribution of Age", x = "Age", y = "Count") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+As the experiment was conducted on high school students preparing for the SAT test, the age range is relatively narrow with most participants being 16-17 years old.
+
+```{r}
+# Visualize the distribution of the gender of participants
+ggplot(df, aes(x = gender)) +
+  geom_bar(aes(colour = gender, fill = gender), alpha = 0.5) + 
+  labs(title = "Distribution of Gender", x = "Gender", y = "Count") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+As both boys and girls have been roughly equally represented in this experiment, this ensures that the results are not heavily impacted by gender.
+
+```{r}
+# Visualize the distribution of reading comprehension scores by strategy as boxplots
+ggplot(df_long, aes(x = strategy, y = score)) +
+  geom_boxplot(colour = "darkseagreen", outlier.color = "red") + 
+  geom_jitter(colour = "darkseagreen", alpha = 0.5, size = 2, width = 0.2) + 
+  labs(title = "Boxplot of Score Distributions by Reading Strategy", x = "Reading Strategy", y = "Score (%)", 
+       caption = "Any outliers are represented by red points"
+  ) + 
+  ylim(0, 100) + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+# Visualize the distribution of reading comprehension scores by strategy as density plots
+ggplot(df_long, aes(x = score, fill = strategy, colour = strategy)) + 
+  geom_density(alpha = 0.5) +
+  labs(title = "Density Plot of Score Distributions by Reading Strategy",
+       x = "Test Score (%)", y = "Density") +
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Looking at the distribution plots, it can be noted that there might be potential differences in the distributions of scores across strategies. To test whether these differences are statistically significant, we will conduct an repeated measures ANOVA test.
+
+## Validation of Assumptions
+
+Before conducting the ANOVA test, we need to check assumptions that are required to make the results of the test valid. These assumptions include: absence of outliers, normality, homogeneity of variance and sphericity.
+
+### Absence of Outliers
+
+```{r}
+# Check for outliers in the data
+outlier <- df_long %>%
+  group_by(strategy) %>%
+  identify_outliers(score)
+print(paste("The number of outlier points in the data:", nrow(outlier)))
+```
+
+This result, combined with the boxplot above, shows that there are no outliers in the data.
+
+### Normality
+
+```{r}
+# Check the normality using the Shapiro-Wilk test
+df_long %>%
+  group_by(strategy) %>%
+  shapiro_test(score)
+```
+
+The p-values for all strategies are greater than 0.05. This indicates that we fail to reject the null hypothesis of normality.
+
+### Homogeneity of Variance
+
+```{r}
+# Use Bartlett's test to check for homogeneity of variance
+bartlett.test(score ~ strategy, data=df_long)
+```
+
+As the p-value is greater than 0.05, we fail to reject the null hypothesis of homogeneity of variance. This indicates that the variances of the scores across groups are equal.
+
+### Sphericity
+
+In a repeated measures ANOVA test, it is assumed that the variances of differences between all combinations of related condition groups are equal. If this assumption is violated, there would be an increase in the Type I error rate due to distorted variance calculations. In this case, the ANOVA results must be appropriately adjusted according to the degree of which sphericity has been violated.
+
+In this report, we first manually inspect the variances of the differences between each combination of reading strategies.
+
+```{r}
+grp.diff <- df %>% 
+  transmute(
+    'passive - underline' = passive_score - underline_score, 
+    'passive - highlight' = passive_score - highlight_score, 
+    'highlight - underline' = highlight_score - underline_score
+  )
+
+grp.diff %>% map(var)
+```
+
+The variance of "passive - underline" group is smaller by a large margin compared to that of the other two groups, suggesting a potential violation of the sphericity assumption. To validate this, we can use the Mauchly's test of sphericity, which is automatically included in the ANOVA test function.
+
+## ANOVA Test
+
+We will now conduct a one-way repeated measures ANOVA test to determine if there are any significant differences in reading comprehension scores across the three strategies.
+
+```{r}
+aov_rm <- aov_ez(data=df_long, dv="score", id="id", within="strategy")
+summary(aov_rm)
+```
+
+At first glance, it seems like the difference is statistically significant, as the p-value shown at the table in the top of the output is less than 0.05. However, the results from the Mauchly's test indicate that we reject the null hypothesis of sphericity across the conditions, as the p-value is less than 0.05. In order to correct for this, the Greenhouse-Geisser correction ($\epsilon$ = 0.53) is applied to the degrees of freedom in the table at the bottom of the output. The adjusted p-value is still less than 0.05, indicating that there is a significant difference in the scoress across the three different reading strategies.
+
+## Post-hoc Tests
+
+To identify which specific strategies differ from each other, we will conduct post-hoc tests using the estimated marginal means (EMM) method. This method is appropriate for repeated measures designs and allows us to control for family-wise error rates.
+
+```{r}
+# Confirm the ANOVA table and check the p-value after the Greenhouse Geisser correction
+anova(aov_rm)
+# Compute the estimated marginal means for each condition
+emm <- emmeans(aov_rm, ~ strategy)
+# Pairwise comparisons with Holm family-wise error correction
+post <- pairs(emm, adjust = "holm")
+post
+```
+
+Looking at the p-values of the pairwise comparisons, it can be noted that the there is a significant difference between the mean scores of the highlighting and passive reading strategies, as well as between the underlining and passive reading strategies. However, we still fail to reject the null hypothesis that the population mean values of the highlighting and underlining strategies are the same.
+
+## Additional Analysis: Relationship between the Amount of Text Highlighted and Comprehension Scores
+
+We will now conduct an additional analysis to explore the relationship between the amount of text highlighted and the comprehension scores, as initial EDA revealed that annotation by highlighting text generally led to the highest test scores in the data. This analysis will help us understand if there is a correlation between the proportion of text annotated and the comprehension scores.
+
+We first merge the data containing the highlighted portion of text for each participant with their corresponding reading comprehension scores.
+
+```{r}
+df_highlight <- read_excel("./data/participant_responses.xls", sheet = "highlighted_portions")
+head(df_highlight)
+```
+
+```{r}
+head(df)
+```
+
+```{r}
+df <- df %>% 
+  select(id, highlight_score) %>% 
+  left_join(df_highlight, by = "id")
+head(df)
+```
+
+Based on this data, we can visualize the relationship between the amount of text highlighted and the comprehension scores. We can also try placing visualizations of different regression models to see which one best describes the relationship.
+
+```{r}
+ggplot(df, aes(highlighted_portion, highlight_score)) +
+  geom_point() +
+  # Linear fit
+  geom_smooth(aes(colour = "Linear fit"), method = "lm", se = FALSE) +
+  # Quadratic fit
+  geom_smooth(aes(colour = "Quadratic fit"), method = "lm", formula = y ~ poly(x, 2), se = FALSE) +
+  # Logarithmic fit
+  geom_smooth(aes(colour = "Logarithmic fit"), method = "lm", formula = y ~ log(x), se = FALSE) + 
+  labs(
+    title = "Relationship between Amount of Text Highlighted and Obtained Scores", 
+    x = "Proportion of Text Highlighted", y = "Comprehension Score (%)"
+  ) + 
+  # Supply colours *and* legend labels
+  scale_colour_manual(
+    name   = "Model type", 
+    values = c("Linear fit" = "red", 
+               "Quadratic fit" = "blue", 
+               "Logarithmic fit" = "darkseagreen")
+  ) + 
+  ylim(0, 100) + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+The three fitted lines represent different regression models: linear, quadratic, and logarithmic. To check if any of these models are statistically significant, we will fit each model and extract important metrics such as R-squared, adjusted R-squared, p-value, and RMSE(Root Mean Squared Error) for comparison.
+
+```{r}
+# Fit different regression models
+linear_model <- lm(highlight_score ~ highlighted_portion, data = df)
+quad_model <- lm(highlight_score ~ poly(highlighted_portion, 2), data = df)
+log_model <- lm(highlight_score ~ log(highlighted_portion), data = df)
+
+# Helper function to get important metrics for model comparison
+get_metrics <- function(model, label) {
+  g <- glance(model)
+  tibble(
+    "model of fit" = label, 
+    "r squared" = g$r.squared, 
+    "adj. r squared" = g$adj.r.squared, 
+    "p value" = g$p.value, 
+    "rmse" = sqrt(mean(model$residuals^2))
+  )
+}
+
+# Build a table to display the metrics for all models
+model_metrics <- bind_rows(
+  get_metrics(linear_model, "Linear"), 
+  get_metrics(quad_model, "Quadratic"), 
+  get_metrics(log_model, "Logarithmic")
+)
+
+model_metrics
+```
+The table above shows the important metrics for each regression model. The R-squared and adjusted R-squared values indicate how well the model explains the variance in the data. The p-value indicates whether the model is statistically significant, and the RMSE provides a measure of the model's prediction error.
+
+Looking at the results, it can be noted that the quadratic model best captures the relationship between the amount of text highlighted and the test scores. While the model explains a low amount of variance (Adjusted R^2^ = 0.161), it is the only fit that is statistically significant (p-value < 0.05) and has the lowest RMSE compared to that of the other two models. On the other hand, we fail to reject the null hypothesis of zero coefficients for the linear and logarithmic models.
+
+A quadratic regression explained 22% of the variance in comprehension scores (R^2^ = 0.216) and provided a significantly better fit than a linear model (R^2^ = 0.004). The fitted curve peaks at 38 % text highlighted, where the predicted score is about 91 points. Linear and log-linear alternatives were non-significant (p-value > 0.05) and yielded lower adjusted R^2^ and higher RMSE.

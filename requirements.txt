@@ -1,0 +1,5 @@
+fitz
+pytesseract
+opencv-python
+numpy
+pandas
