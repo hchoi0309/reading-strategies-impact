@@ -36,7 +36,7 @@ The study uses a within-subjects experimental design with standardized SAT readi
 
 ## View Full Analysis
 
-**[Complete Statistical Report](main.qmd)** - Quarto document with all analyses, visualizations, and code
+**[Complete Statistical Report](https://hchoi0309.github.io/reading-strategies-impact/index.html)** - Quarto document with all analyses, visualizations, and code
 
 ## Project Structure
 
