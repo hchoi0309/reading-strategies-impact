@@ -1,6 +1,6 @@
 # Reading Strategies Impact Analysis
 
-A comprehensive statistical analysis investigating the impact of different reading strategies on text comprehension performance using repeated measures ANOVA.
+This statistical analysis investigates the impact of different reading strategies on text comprehension performance using repeated measures ANOVA.
 
 ## Overview
 
@@ -34,11 +34,11 @@ The study uses a within-subjects experimental design with standardized SAT readi
 - **Post-hoc Analysis**: Pairwise comparisons with Holm correction
 - **Additional Analysis**: Regression modeling of highlighting proportion vs. performance
 
-## 🚀 View Full Analysis
+## View Full Analysis
 
-**[📋 Complete Statistical Report](main.qmd)** - Interactive Quarto document with all analyses, visualizations, and code
+**[Complete Statistical Report](main.qmd)** - Quarto document with all analyses, visualizations, and code
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── main.qmd                    # Main analysis document (Quarto)
@@ -49,7 +49,11 @@ The study uses a within-subjects experimental design with standardized SAT readi
 └── requirements.txt           # Python dependencies
 ```
 
-## 📊 Results Summary
+## Results Summary
 
 The analysis reveals that active reading strategies (highlighting/underlining) provide significant advantages over passive reading, with an optimal "sweet spot" for text highlighting that maximizes comprehension performance.
 
+## Future Steps
+
+- Investigate whether the effectiveness in reading strategies change with different time limits
+- Explore possible patterns in annotations that might lead to higher scores
