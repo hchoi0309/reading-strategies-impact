@@ -28,7 +28,7 @@ def extract_proportions(folder_path, num_pdfs):
                 # Convert the page to an image
                 pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x zoom for better resolution (double the number of pixels)
                 # Convert the image from RGBA (pixmap default format) to RGB
-                img = Image.frombytes(mode="RGB", size=[pix.width, pix.height], data=pix.samples) # check later if refactoring is possible
+                img = Image.frombytes(mode="RGB", size=[pix.width, pix.height], data=pix.samples)
                 img_np = np.array(img)
 
                 # Detect highlighted areas in yellow
@@ -69,28 +69,35 @@ def extract_proportions(folder_path, num_pdfs):
 
 def update_proportions(output_path, output_sheet, proportions):
     '''
-    Update the csv file located at output_path by adding a column of proportions
+    Update the excel sheet located at output_path by adding a column of proportions
     '''
     try:
-        # Read existing csv from output_path
-        df = pd.read_excel(output_path, sheet_name=output_sheet)
-        # Add the proportions to the dataframe based on matching id values
-        df["highlight_proportion"] = df["id"].map(proportions)
-        # Save the updated csv file to the same path
-        df.to_excel(output_path, sheet_name=output_sheet, index=False)
+        # Read all sheets
+        all_sheets = pd.read_excel(output_path, sheet_name=None)
+
+        # Update the output sheet
+        all_sheets[output_sheet] = pd.DataFrame({
+            "id": list(proportions.keys()),
+            "highlighted_portion": list(proportions.values())
+        })
+
+        # Write all sheets back
+        with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+            for sheet_name, df in all_sheets.items():
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     except Exception as e:
-        print("Error while updating the excel file:", e)
+        print("Error while updating the spreadsheet:", e)
 
 def main():
     folder_path = "data/passages/highlighted_passages"
-    num_pdfs = 2
+    num_pdfs = 5
     proportions = extract_proportions(folder_path, num_pdfs)
     print("\n\n{}".format(proportions))
 
-    output_path, output_sheet = "data/participant_responses.xls", "highlighted_portions"
+    output_path, output_sheet = "data/participant_responses.xlsx", "highlighted_portions"
     update_proportions(output_path, output_sheet, proportions)
-    # print("Successful Completion")
+    print("Successful Completion")
 
 if __name__ == "__main__":
     main()

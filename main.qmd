@@ -32,7 +32,7 @@ This project aims to investigate the impact of different reading strategies — 
 
 ### Experimental Design
 
-1.  Participants read three passages from practice SAT exams each with a different strategy, in a randomized order. After reading each passage, they solve the corresponding questions. Each passage has an upper time limit of 13 minutes to be read and solved.
+1.  Participants read three passages from practice SAT exams each with a different strategy, in a randomized order. After reading each passage, they solve the corresponding questions. Each passage has a time limit of 13 minutes to be read and solved.
 2.  The effects of reading strategies are analyzed using ANOVA on the obtained scores. If there is a significant difference, post-hoc tests are conducted to identify which strategies differ.
 3.  Different assumptions for ANOVA are checked, including normality, homogeneity of variance and sphericity.
 4.  The proportion of text highlighted/underlined is extracted by analyzing pdfs of the passages that were annotated by participants.
@@ -61,26 +61,42 @@ library(broom)
 ```{r}
 # Read the data file containing participant responses and inspect the first few rows
 df <- read_excel("./data/participant_responses.xls")
-head(df)
+kable(head(df), align = "c", caption = "First Six Rows of the Dataframe")
 ```
 
 ## Data Validation and Preprocessing
 
 The next step is to validate the data and perform any necessary preprocessing steps to ensure that the data is clean and ready for analysis.
 
+We first check the data types of each column in the dataframe. This will help us identify any columns that need to be converted to a different data type for analysis.
+
+```{r}
+# Check the data types of each column in the dataframe
+kable(sapply(df, class), col.names = c("Column Name", "Column Data Type"), align = "c",
+      caption = "Data Type of Each Feature")
+```
+
+Since the categorical variable `gender` is currently stored as a character vector, we convert it to a factor with appropriate labels for better interpretability.
+
 ```{r}
 # Turn the categorical variable "gender" into a factor
 df$gender <- factor(df$gender, levels = c("f", "m"), labels = c("Female", "Male"))
 # Verify whether the gender variable has been successfully transformed into a factor
-print(is.factor(df$gender))
+cat("The 'gender' column type has been successfully converted to a factor:", is.factor(df$gender))
 ```
+
+We also check for any missing values in the dataframe, as these can impact the results of our analysis.
 
 ```{r}
 # Check for any missing values in the dataframe
 missing_values <- df %>%
   summarise_all(~sum(is.na(.)))
-print(missing_values)
+kable(missing_values, align = "c", caption = "Number of Missing Values in Each Column")
 ```
+
+There are no missing values in the dataframe, so we can proceed with the analysis without needing to handle any missing data.
+
+Before moving on to the actual analysis, we stack the data to convert it from wide to long format. This will make it easier to analyze and visualize the data.
 
 ```{r}
 # Stack the data to convert it from wide to long format for easier analysis and visualization
@@ -93,17 +109,18 @@ df_long <- df %>%
   arrange(strategy, id)
 df_long$strategy <- as.factor(df_long$strategy)
 df_long$id <- as.factor(df_long$id)
-head(df_long)
-```
-
-```{r}
-# Show the overall summary of statistics for the dataframe
-summary(df)
+# Verify the first few rows of the stacked dataframe
+kable(head(df_long), align = "c", caption = "First Six Rows of the Stacked Dataframe")
 ```
 
 ## Exploratory Data Analysis
 
-We then perform exploratory data analysis to understand the distribution of participant characteristics and reading comprehension scores across different strategies.
+We now perform exploratory data analysis to understand the distribution of participant characteristics and reading comprehension scores across different strategies.
+
+```{r}
+# Show the overall summary of statistics for the dataframe
+kable(summary(df), align = "c", caption = "Summary Statistics of the Dataframe")
+```
 
 ```{r}
 # Visualize the distribution of the age of participants
@@ -131,7 +148,7 @@ As both boys and girls have been roughly equally represented in this experiment,
 # Visualize the distribution of reading comprehension scores by strategy as boxplots
 ggplot(df_long, aes(x = strategy, y = score)) +
   geom_boxplot(colour = "darkseagreen", outlier.color = "red") + 
-  geom_jitter(colour = "darkseagreen", alpha = 0.5, size = 2, width = 0.2) + 
+  geom_jitter(colour = "darkseagreen", alpha = 0.5, size = 2, width = 0.4, height = 0) + 
   labs(title = "Boxplot of Score Distributions by Reading Strategy", x = "Reading Strategy", y = "Score (%)", 
        caption = "Any outliers are represented by red points"
   ) + 
@@ -150,11 +167,11 @@ ggplot(df_long, aes(x = score, fill = strategy, colour = strategy)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-Looking at the distribution plots, it can be noted that there might be potential differences in the distributions of scores across strategies. To test whether these differences are statistically significant, we will conduct an repeated measures ANOVA test.
+Looking at the distribution plots, it can be noted that there might be potential differences in the distributions of scores across strategies. To test whether these differences are statistically significant, we will conduct a repeated measures ANOVA test.
 
 ## Validation of Assumptions
 
-Before conducting the ANOVA test, we need to check assumptions that are required to make the results of the test valid. These assumptions include: absence of outliers, normality, homogeneity of variance and sphericity.
+Before conducting the ANOVA test, we need to check the assumptions that are required to make the results of the test valid. These assumptions include: absence of outliers, normality, homogeneity of variance and sphericity.
 
 ### Absence of Outliers
 
@@ -163,7 +180,7 @@ Before conducting the ANOVA test, we need to check assumptions that are required
 outlier <- df_long %>%
   group_by(strategy) %>%
   identify_outliers(score)
-print(paste("The number of outlier points in the data:", nrow(outlier)))
+cat("Number of outlier points in the data:", nrow(outlier))
 ```
 
 This result, combined with the boxplot above, shows that there are no outliers in the data.
@@ -172,12 +189,13 @@ This result, combined with the boxplot above, shows that there are no outliers i
 
 ```{r}
 # Check the normality using the Shapiro-Wilk test
-df_long %>%
+normality <- df_long %>%
   group_by(strategy) %>%
   shapiro_test(score)
+kable(normality, align = "c", caption = "Results of the Shapiro-Wilk Test for Normality of Data")
 ```
 
-The p-values for all strategies are greater than 0.05. This indicates that we fail to reject the null hypothesis of normality.
+The p-values for strategies are all greater than 0.05. This indicates that we fail to reject the null hypothesis of normality.
 
 ### Homogeneity of Variance
 
@@ -195,14 +213,24 @@ In a repeated measures ANOVA test, it is assumed that the variances of differenc
 In this report, we first manually inspect the variances of the differences between each combination of reading strategies.
 
 ```{r}
+# Calculate the raw difference between the test scores of each pair of reading strategies
 grp.diff <- df %>% 
   transmute(
-    'passive - underline' = passive_score - underline_score, 
-    'passive - highlight' = passive_score - highlight_score, 
-    'highlight - underline' = highlight_score - underline_score
+    'passive_vs_underline' = passive_score - underline_score, 
+    'passive_vs_highlight' = passive_score - highlight_score, 
+    'highlight_vs_underline' = highlight_score - underline_score
   )
 
-grp.diff %>% map(var)
+# Compute the variance of the differences between each pair of reading strategies
+grp.diff %>%
+  map(var) %>%
+  as.data.frame() %>% 
+  t() %>%
+  kable(
+    col.names = c("Strategies Under Comparison", "Variance"),
+    align = "c",
+    caption = "Variance of Differences Between Reading Strategy Groups"
+  )
 ```
 
 The variance of "passive - underline" group is smaller by a large margin compared to that of the other two groups, suggesting a potential violation of the sphericity assumption. To validate this, we can use the Mauchly's test of sphericity, which is automatically included in the ANOVA test function.
@@ -212,6 +240,7 @@ The variance of "passive - underline" group is smaller by a large margin compare
 We will now conduct a one-way repeated measures ANOVA test to determine if there are any significant differences in reading comprehension scores across the three strategies.
 
 ```{r}
+# Conduct a repeated measures ANOVA test with inherent corrections for the potential violation of sphericity
 aov_rm <- aov_ez(data=df_long, dv="score", id="id", within="strategy")
 summary(aov_rm)
 ```
@@ -223,13 +252,11 @@ At first glance, it seems like the difference is statistically significant, as t
 To identify which specific strategies differ from each other, we will conduct post-hoc tests using the estimated marginal means (EMM) method. This method is appropriate for repeated measures designs and allows us to control for family-wise error rates.
 
 ```{r}
-# Confirm the ANOVA table and check the p-value after the Greenhouse Geisser correction
-anova(aov_rm)
 # Compute the estimated marginal means for each condition
 emm <- emmeans(aov_rm, ~ strategy)
 # Pairwise comparisons with Holm family-wise error correction
 post <- pairs(emm, adjust = "holm")
-post
+kable(post, align = "c", caption = "Pairwise Comparisons Different Reading Strategies")
 ```
 
 Looking at the p-values of the pairwise comparisons, it can be noted that the there is a significant difference between the mean scores of the highlighting and passive reading strategies, as well as between the underlining and passive reading strategies. However, we still fail to reject the null hypothesis that the population mean values of the highlighting and underlining strategies are the same.
@@ -242,18 +269,18 @@ We first merge the data containing the highlighted portion of text for each part
 
 ```{r}
 df_highlight <- read_excel("./data/participant_responses.xls", sheet = "highlighted_portions")
-head(df_highlight)
+kable(head(df_highlight), align = "c", caption = "First Six Rows of the Highlighted Portions Dataframe")
 ```
 
 ```{r}
-head(df)
+kable(head(df), align = "c", caption = "First Six Rows of the Participant Responses Dataframe")
 ```
 
 ```{r}
 df <- df %>% 
   select(id, highlight_score) %>% 
   left_join(df_highlight, by = "id")
-head(df)
+kable(head(df), align = "c", caption = "First Six Rows of the Merged Dataframe")
 ```
 
 Based on this data, we can visualize the relationship between the amount of text highlighted and the comprehension scores. We can also try placing visualizations of different regression models to see which one best describes the relationship.
@@ -295,11 +322,11 @@ log_model <- lm(highlight_score ~ log(highlighted_portion), data = df)
 get_metrics <- function(model, label) {
   g <- glance(model)
   tibble(
-    "model of fit" = label, 
-    "r squared" = g$r.squared, 
-    "adj. r squared" = g$adj.r.squared, 
-    "p value" = g$p.value, 
-    "rmse" = sqrt(mean(model$residuals^2))
+    label, 
+    g$r.squared, 
+    g$adj.r.squared, 
+    g$p.value, 
+    sqrt(mean(model$residuals^2))
   )
 }
 
@@ -310,7 +337,11 @@ model_metrics <- bind_rows(
   get_metrics(log_model, "Logarithmic")
 )
 
-model_metrics
+kable(model_metrics,
+      col.names = c("Model of Fit", "R Squared", "Adjusted R Squared", "P-value", "RMSE"),
+      align = "c",
+      caption = "Metrics for the Evaluation of Different Regression Models"
+)
 ```
 
 The table above shows the important metrics for each regression model. The R-squared and adjusted R-squared values indicate how well the model explains the variance in the data. The p-value indicates whether the model is statistically significant, and the RMSE provides a measure of the model's prediction error.

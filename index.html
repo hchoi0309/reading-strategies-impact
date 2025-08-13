@@ -178,12 +178,13 @@ window.Quarto = {
 <section id="experimental-design" class="level3">
 <h3 class="anchored" data-anchor-id="experimental-design">Experimental Design</h3>
 <ol type="1">
-<li>Participants read three passages from practice SAT exams each with a different strategy, in a randomized order. After reading each passage, they solve the corresponding questions. Each passage has an upper time limit of 13 minutes to be read and solved.</li>
+<li>Participants read three passages from practice SAT exams each with a different strategy, in a randomized order. After reading each passage, they solve the corresponding questions. Each passage has a time limit of 13 minutes to be read and solved.</li>
 <li>The effects of reading strategies are analyzed using ANOVA on the obtained scores. If there is a significant difference, post-hoc tests are conducted to identify which strategies differ.</li>
 <li>Different assumptions for ANOVA are checked, including normality, homogeneity of variance and sphericity.</li>
 <li>The proportion of text highlighted/underlined is extracted by analyzing pdfs of the passages that were annotated by participants.</li>
 <li>The relationship between the proportion of text highlighted/underlined and comprehension scores is analyzed using linear regression.</li>
 </ol>
+<p><strong>(Insert figures of highlighted, underlined, unannotated passages later here)</strong></p>
 <p>Overall, this study aims to contribute to a deeper understanding of effective reading strategies and their implications for study habits and learning outcomes.</p>
 </section>
 </section>
@@ -211,133 +212,352 @@ window.Quarto = {
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the data file containing participant responses and inspect the first few rows</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"./data/participant_responses.xls"</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">head</span>(df), <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"First Six Rows of the Dataframe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 6
-     id   age gender passive_score underline_score highlight_score
-  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;           &lt;dbl&gt;           &lt;dbl&gt;
-1     1    15 m                 60              60              90
-2     2    16 f                 60              70              90
-3     3    16 f                 90             100              80
-4     4    16 m                 70              80              90
-5     5    17 m                 70              80              90
-6     6    17 m                100             100              60</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>First Six Rows of the Dataframe</caption>
+<colgroup>
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 12%">
+<col style="width: 22%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">id</th>
+<th style="text-align: center;">age</th>
+<th style="text-align: center;">gender</th>
+<th style="text-align: center;">passive_score</th>
+<th style="text-align: center;">underline_score</th>
+<th style="text-align: center;">highlight_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">m</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">f</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">f</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">80</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">m</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">m</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">m</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">60</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </section>
 <section id="data-validation-and-preprocessing" class="level2">
 <h2 class="anchored" data-anchor-id="data-validation-and-preprocessing">Data Validation and Preprocessing</h2>
 <p>The next step is to validate the data and perform any necessary preprocessing steps to ensure that the data is clean and ready for analysis.</p>
+<p>We first check the data types of each column in the dataframe. This will help us identify any columns that need to be converted to a different data type for analysis.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check the data types of each column in the dataframe</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">sapply</span>(df, class), <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Column Name"</span>, <span class="st">"Column Data Type"</span>), <span class="at">align =</span> <span class="st">"c"</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Data Type of Each Feature"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Data Type of Each Feature</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Column Name</th>
+<th style="text-align: center;">Column Data Type</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">id</td>
+<td style="text-align: center;">numeric</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">age</td>
+<td style="text-align: center;">numeric</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">gender</td>
+<td style="text-align: center;">character</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">passive_score</td>
+<td style="text-align: center;">numeric</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">underline_score</td>
+<td style="text-align: center;">numeric</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">highlight_score</td>
+<td style="text-align: center;">numeric</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Since the categorical variable <code>gender</code> is currently stored as a character vector, we convert it to a factor with appropriate labels for better interpretability.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Turn the categorical variable "gender" into a factor</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df<span class="sc">$</span>gender <span class="ot">&lt;-</span> <span class="fu">factor</span>(df<span class="sc">$</span>gender, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"f"</span>, <span class="st">"m"</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Female"</span>, <span class="st">"Male"</span>))</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify whether the gender variable has been successfully transformed into a factor</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">is.factor</span>(df<span class="sc">$</span>gender))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"The 'gender' column type has been successfully converted to a factor:"</span>, <span class="fu">is.factor</span>(df<span class="sc">$</span>gender))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] TRUE</code></pre>
+<pre><code>The 'gender' column type has been successfully converted to a factor: TRUE</code></pre>
 </div>
 </div>
+<p>We also check for any missing values in the dataframe, as these can impact the results of our analysis.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for any missing values in the dataframe</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>missing_values <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise_all</span>(<span class="sc">~</span><span class="fu">sum</span>(<span class="fu">is.na</span>(.)))</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(missing_values)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(missing_values, <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"Number of Missing Values in Each Column"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 6
-     id   age gender passive_score underline_score highlight_score
-  &lt;int&gt; &lt;int&gt;  &lt;int&gt;         &lt;int&gt;           &lt;int&gt;           &lt;int&gt;
-1     0     0      0             0               0               0</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Number of Missing Values in Each Column</caption>
+<colgroup>
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 12%">
+<col style="width: 22%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">id</th>
+<th style="text-align: center;">age</th>
+<th style="text-align: center;">gender</th>
+<th style="text-align: center;">passive_score</th>
+<th style="text-align: center;">underline_score</th>
+<th style="text-align: center;">highlight_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
+<p>There are no missing values in the dataframe, so we can proceed with the analysis without needing to handle any missing data.</p>
+<p>Before moving on to the actual analysis, we stack the data to convert it from wide to long format. This will make it easier to analyze and visualize the data.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Stack the data to convert it from wide to long format for easier analysis and visualization</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>df_long <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>gender, <span class="sc">-</span>age) <span class="sc">%&gt;%</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(passive_score, underline_score, highlight_score),</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"strategy"</span>,</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"score"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(strategy, id)</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>strategy <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(df_long<span class="sc">$</span>strategy)</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>id <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(df_long<span class="sc">$</span>id)</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_long)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Stack the data to convert it from wide to long format for easier analysis and visualization</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>df_long <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>gender, <span class="sc">-</span>age) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(passive_score, underline_score, highlight_score),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"strategy"</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"score"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(strategy, id)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>strategy <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(df_long<span class="sc">$</span>strategy)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>df_long<span class="sc">$</span>id <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(df_long<span class="sc">$</span>id)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify the first few rows of the stacked dataframe</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">head</span>(df_long), <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"First Six Rows of the Stacked Dataframe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 3
-  id    strategy        score
-  &lt;fct&gt; &lt;fct&gt;           &lt;dbl&gt;
-1 1     highlight_score    90
-2 2     highlight_score    90
-3 3     highlight_score    80
-4 4     highlight_score    90
-5 5     highlight_score    90
-6 6     highlight_score    60</code></pre>
-</div>
-</div>
-<div class="cell">
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the overall summary of statistics for the dataframe</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>       id            age           gender   passive_score    underline_score 
- Min.   : 1.0   Min.   :15.00   Female:15   Min.   : 30.00   Min.   : 40.00  
- 1st Qu.: 8.5   1st Qu.:16.00   Male  :16   1st Qu.: 60.00   1st Qu.: 60.00  
- Median :16.0   Median :16.00               Median : 70.00   Median : 80.00  
- Mean   :16.0   Mean   :16.42               Mean   : 67.74   Mean   : 73.55  
- 3rd Qu.:23.5   3rd Qu.:17.00               3rd Qu.: 80.00   3rd Qu.: 80.00  
- Max.   :31.0   Max.   :18.00               Max.   :100.00   Max.   :100.00  
- highlight_score 
- Min.   : 50.00  
- 1st Qu.: 70.00  
- Median : 80.00  
- Mean   : 78.71  
- 3rd Qu.: 90.00  
- Max.   :100.00  </code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>First Six Rows of the Stacked Dataframe</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;">id</th>
+<th style="text-align: center;">strategy</th>
+<th style="text-align: center;">score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">highlight_score</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">highlight_score</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">highlight_score</td>
+<td style="text-align: center;">80</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">highlight_score</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">highlight_score</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">highlight_score</td>
+<td style="text-align: center;">60</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </section>
 <section id="exploratory-data-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="exploratory-data-analysis">Exploratory Data Analysis</h2>
-<p>We then perform exploratory data analysis to understand the distribution of participant characteristics and reading comprehension scores across different strategies.</p>
+<p>We now perform exploratory data analysis to understand the distribution of participant characteristics and reading comprehension scores across different strategies.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of the age of participants</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> age)) <span class="sc">+</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"darkseagreen"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">colour=</span><span class="st">"darkseagreen"</span>) <span class="sc">+</span> </span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Age"</span>, <span class="at">x =</span> <span class="st">"Age"</span>, <span class="at">y =</span> <span class="st">"Count"</span>) <span class="sc">+</span> </span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the overall summary of statistics for the dataframe</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">summary</span>(df), <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"Summary Statistics of the Dataframe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="main_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
+<table class="caption-top table table-sm table-striped small">
+<caption>Summary Statistics of the Dataframe</caption>
+<colgroup>
+<col style="width: 3%">
+<col style="width: 15%">
+<col style="width: 16%">
+<col style="width: 11%">
+<col style="width: 17%">
+<col style="width: 18%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: center;">id</th>
+<th style="text-align: center;">age</th>
+<th style="text-align: center;">gender</th>
+<th style="text-align: center;">passive_score</th>
+<th style="text-align: center;">underline_score</th>
+<th style="text-align: center;">highlight_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">Min. : 1.0</td>
+<td style="text-align: center;">Min. :15.00</td>
+<td style="text-align: center;">Female:15</td>
+<td style="text-align: center;">Min. : 30.00</td>
+<td style="text-align: center;">Min. : 40.00</td>
+<td style="text-align: center;">Min. : 50.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">1st Qu.: 8.5</td>
+<td style="text-align: center;">1st Qu.:16.00</td>
+<td style="text-align: center;">Male :16</td>
+<td style="text-align: center;">1st Qu.: 60.00</td>
+<td style="text-align: center;">1st Qu.: 60.00</td>
+<td style="text-align: center;">1st Qu.: 70.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">Median :16.0</td>
+<td style="text-align: center;">Median :16.00</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">Median : 70.00</td>
+<td style="text-align: center;">Median : 80.00</td>
+<td style="text-align: center;">Median : 80.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">Mean :16.0</td>
+<td style="text-align: center;">Mean :16.42</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">Mean : 67.74</td>
+<td style="text-align: center;">Mean : 73.55</td>
+<td style="text-align: center;">Mean : 78.71</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3rd Qu.:23.5</td>
+<td style="text-align: center;">3rd Qu.:17.00</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">3rd Qu.: 80.00</td>
+<td style="text-align: center;">3rd Qu.: 80.00</td>
+<td style="text-align: center;">3rd Qu.: 90.00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">Max. :31.0</td>
+<td style="text-align: center;">Max. :18.00</td>
+<td style="text-align: center;">NA</td>
+<td style="text-align: center;">Max. :100.00</td>
+<td style="text-align: center;">Max. :100.00</td>
+<td style="text-align: center;">Max. :100.00</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-</div>
-<p>As the experiment was conducted on high school students preparing for the SAT test, the age range is relatively narrow with most participants being 16-17 years old.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of the gender of participants</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> gender)) <span class="sc">+</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="fu">aes</span>(<span class="at">colour =</span> gender, <span class="at">fill =</span> gender), <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span> </span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Gender"</span>, <span class="at">x =</span> <span class="st">"Gender"</span>, <span class="at">y =</span> <span class="st">"Count"</span>) <span class="sc">+</span> </span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of the age of participants</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> age)) <span class="sc">+</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">1</span>, <span class="at">fill =</span> <span class="st">"darkseagreen"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">colour=</span><span class="st">"darkseagreen"</span>) <span class="sc">+</span> </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Age"</span>, <span class="at">x =</span> <span class="st">"Age"</span>, <span class="at">y =</span> <span class="st">"Count"</span>) <span class="sc">+</span> </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -347,20 +567,16 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>As both boys and girls have been roughly equally represented in this experiment, this ensures that the results are not heavily impacted by gender.</p>
+<p>As the experiment was conducted on high school students preparing for the SAT test, the age range is relatively narrow with most participants being 16-17 years old.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of reading comprehension scores by strategy as boxplots</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_long, <span class="fu">aes</span>(<span class="at">x =</span> strategy, <span class="at">y =</span> score)) <span class="sc">+</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">colour =</span> <span class="st">"darkseagreen"</span>, <span class="at">outlier.color =</span> <span class="st">"red"</span>) <span class="sc">+</span> </span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">colour =</span> <span class="st">"darkseagreen"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">width =</span> <span class="fl">0.2</span>) <span class="sc">+</span> </span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Boxplot of Score Distributions by Reading Strategy"</span>, <span class="at">x =</span> <span class="st">"Reading Strategy"</span>, <span class="at">y =</span> <span class="st">"Score (%)"</span>, </span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">"Any outliers are represented by red points"</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">100</span>) <span class="sc">+</span> </span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of the gender of participants</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> gender)) <span class="sc">+</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="fu">aes</span>(<span class="at">colour =</span> gender, <span class="at">fill =</span> gender), <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of Gender"</span>, <span class="at">x =</span> <span class="st">"Gender"</span>, <span class="at">y =</span> <span class="st">"Count"</span>) <span class="sc">+</span> </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -370,16 +586,20 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<p>As both boys and girls have been roughly equally represented in this experiment, this ensures that the results are not heavily impacted by gender.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of reading comprehension scores by strategy as density plots</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_long, <span class="fu">aes</span>(<span class="at">x =</span> score, <span class="at">fill =</span> strategy, <span class="at">colour =</span> strategy)) <span class="sc">+</span> </span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Density Plot of Score Distributions by Reading Strategy"</span>,</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Test Score (%)"</span>, <span class="at">y =</span> <span class="st">"Density"</span>) <span class="sc">+</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of reading comprehension scores by strategy as boxplots</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_long, <span class="fu">aes</span>(<span class="at">x =</span> strategy, <span class="at">y =</span> score)) <span class="sc">+</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">colour =</span> <span class="st">"darkseagreen"</span>, <span class="at">outlier.color =</span> <span class="st">"red"</span>) <span class="sc">+</span> </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_jitter</span>(<span class="at">colour =</span> <span class="st">"darkseagreen"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">2</span>, <span class="at">width =</span> <span class="fl">0.4</span>, <span class="at">height =</span> <span class="dv">0</span>) <span class="sc">+</span> </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Boxplot of Score Distributions by Reading Strategy"</span>, <span class="at">x =</span> <span class="st">"Reading Strategy"</span>, <span class="at">y =</span> <span class="st">"Score (%)"</span>, </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">caption =</span> <span class="st">"Any outliers are represented by red points"</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">100</span>) <span class="sc">+</span> </span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -389,24 +609,43 @@ window.Quarto = {
 </div>
 </div>
 </div>
-<p>Looking at the distribution plots, it can be noted that there might be potential differences in the distributions of scores across strategies. To test whether these differences are statistically significant, we will conduct an repeated measures ANOVA test.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Show code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the distribution of reading comprehension scores by strategy as density plots</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df_long, <span class="fu">aes</span>(<span class="at">x =</span> score, <span class="at">fill =</span> strategy, <span class="at">colour =</span> strategy)) <span class="sc">+</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Density Plot of Score Distributions by Reading Strategy"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Test Score (%)"</span>, <span class="at">y =</span> <span class="st">"Density"</span>) <span class="sc">+</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="main_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Looking at the distribution plots, it can be noted that there might be potential differences in the distributions of scores across strategies. To test whether these differences are statistically significant, we will conduct a repeated measures ANOVA test.</p>
 </section>
 <section id="validation-of-assumptions" class="level2">
 <h2 class="anchored" data-anchor-id="validation-of-assumptions">Validation of Assumptions</h2>
-<p>Before conducting the ANOVA test, we need to check assumptions that are required to make the results of the test valid. These assumptions include: absence of outliers, normality, homogeneity of variance and sphericity.</p>
+<p>Before conducting the ANOVA test, we need to check the assumptions that are required to make the results of the test valid. These assumptions include: absence of outliers, normality, homogeneity of variance and sphericity.</p>
 <section id="absence-of-outliers" class="level3">
 <h3 class="anchored" data-anchor-id="absence-of-outliers">Absence of Outliers</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for outliers in the data</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>outlier <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(strategy) <span class="sc">%&gt;%</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">identify_outliers</span>(score)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"The number of outlier points in the data:"</span>, <span class="fu">nrow</span>(outlier)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check for outliers in the data</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>outlier <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(strategy) <span class="sc">%&gt;%</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">identify_outliers</span>(score)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Number of outlier points in the data:"</span>, <span class="fu">nrow</span>(outlier))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "The number of outlier points in the data: 0"</code></pre>
+<pre><code>Number of outlier points in the data: 0</code></pre>
 </div>
 </div>
 <p>This result, combined with the boxplot above, shows that there are no outliers in the data.</p>
@@ -416,29 +655,55 @@ window.Quarto = {
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check the normality using the Shapiro-Wilk test</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>df_long <span class="sc">%&gt;%</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(strategy) <span class="sc">%&gt;%</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">shapiro_test</span>(score)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Check the normality using the Shapiro-Wilk test</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>normality <span class="ot">&lt;-</span> df_long <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(strategy) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">shapiro_test</span>(score)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(normality, <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"Results of the Shapiro-Wilk Test for Normality of Data"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 3 × 4
-  strategy        variable statistic      p
-  &lt;fct&gt;           &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;
-1 highlight_score score        0.937 0.0665
-2 passive_score   score        0.961 0.308 
-3 underline_score score        0.942 0.0918</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Results of the Shapiro-Wilk Test for Normality of Data</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;">strategy</th>
+<th style="text-align: center;">variable</th>
+<th style="text-align: center;">statistic</th>
+<th style="text-align: center;">p</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">highlight_score</td>
+<td style="text-align: center;">score</td>
+<td style="text-align: center;">0.9366071</td>
+<td style="text-align: center;">0.0665092</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">passive_score</td>
+<td style="text-align: center;">score</td>
+<td style="text-align: center;">0.9608857</td>
+<td style="text-align: center;">0.3078865</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">underline_score</td>
+<td style="text-align: center;">score</td>
+<td style="text-align: center;">0.9416754</td>
+<td style="text-align: center;">0.0918161</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-<p>The p-values for all strategies are greater than 0.05. This indicates that we fail to reject the null hypothesis of normality.</p>
+<p>The p-values for strategies are all greater than 0.05. This indicates that we fail to reject the null hypothesis of normality.</p>
 </section>
 <section id="homogeneity-of-variance" class="level3">
 <h3 class="anchored" data-anchor-id="homogeneity-of-variance">Homogeneity of Variance</h3>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use Bartlett's test to check for homogeneity of variance</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bartlett.test</span>(score <span class="sc">~</span> strategy, <span class="at">data=</span>df_long)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Use Bartlett's test to check for homogeneity of variance</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bartlett.test</span>(score <span class="sc">~</span> strategy, <span class="at">data=</span>df_long)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -457,24 +722,49 @@ Bartlett's K-squared = 2.0459, df = 2, p-value = 0.3595</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>grp.diff <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> </span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">'passive - underline'</span> <span class="ot">=</span> passive_score <span class="sc">-</span> underline_score, </span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'passive - highlight'</span> <span class="ot">=</span> passive_score <span class="sc">-</span> highlight_score, </span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">'highlight - underline'</span> <span class="ot">=</span> highlight_score <span class="sc">-</span> underline_score</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>grp.diff <span class="sc">%&gt;%</span> <span class="fu">map</span>(var)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate the raw difference between the test scores of each pair of reading strategies</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>grp.diff <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">'passive_vs_underline'</span> <span class="ot">=</span> passive_score <span class="sc">-</span> underline_score, </span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">'passive_vs_highlight'</span> <span class="ot">=</span> passive_score <span class="sc">-</span> highlight_score, </span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">'highlight_vs_underline'</span> <span class="ot">=</span> highlight_score <span class="sc">-</span> underline_score</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the variance of the differences between each pair of reading strategies</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>grp.diff <span class="sc">%&gt;%</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>(var) <span class="sc">%&gt;%</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">t</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Strategies Under Comparison"</span>, <span class="st">"Variance"</span>),</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="st">"c"</span>,</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">caption =</span> <span class="st">"Variance of Differences Between Reading Strategy Groups"</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code>$`passive - underline`
-[1] 25.16129
-
-$`passive - highlight`
-[1] 535.6989
-
-$`highlight - underline`
-[1] 472.4731</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Variance of Differences Between Reading Strategy Groups</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Strategies Under Comparison</th>
+<th style="text-align: center;">Variance</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">passive_vs_underline</td>
+<td style="text-align: center;">25.16129</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">passive_vs_highlight</td>
+<td style="text-align: center;">535.69892</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">highlight_vs_underline</td>
+<td style="text-align: center;">472.47312</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>The variance of “passive - underline” group is smaller by a large margin compared to that of the other two groups, suggesting a potential violation of the sphericity assumption. To validate this, we can use the Mauchly’s test of sphericity, which is automatically included in the ANOVA test function.</p>
@@ -486,8 +776,9 @@ $`highlight - underline`
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>aov_rm <span class="ot">&lt;-</span> <span class="fu">aov_ez</span>(<span class="at">data=</span>df_long, <span class="at">dv=</span><span class="st">"score"</span>, <span class="at">id=</span><span class="st">"id"</span>, <span class="at">within=</span><span class="st">"strategy"</span>)</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(aov_rm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Conduct a repeated measures ANOVA test with inherent corrections for the potential violation of sphericity</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>aov_rm <span class="ot">&lt;-</span> <span class="fu">aov_ez</span>(<span class="at">data=</span>df_long, <span class="at">dv=</span><span class="st">"score"</span>, <span class="at">id=</span><span class="st">"id"</span>, <span class="at">within=</span><span class="st">"strategy"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(aov_rm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -526,33 +817,60 @@ strategy 0.5382985 0.02418335</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Confirm the ANOVA table and check the p-value after the Greenhouse Geisser correction</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(aov_rm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the estimated marginal means for each condition</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>emm <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(aov_rm, <span class="sc">~</span> strategy)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Pairwise comparisons with Holm family-wise error correction</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">pairs</span>(emm, <span class="at">adjust =</span> <span class="st">"holm"</span>)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(post, <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"Pairwise Comparisons Different Reading Strategies"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code>Anova Table (Type 3 tests)
-
-Response: score
-         num Df den Df    MSE      F      ges  Pr(&gt;F)  
-strategy 1.0693 32.078 322.14 5.4194 0.079545 0.02443 *
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-<details class="code-fold">
-<summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the estimated marginal means for each condition</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>emm <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(aov_rm, <span class="sc">~</span> strategy)</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Pairwise comparisons with Holm family-wise error correction</span></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>post <span class="ot">&lt;-</span> <span class="fu">pairs</span>(emm, <span class="at">adjust =</span> <span class="st">"holm"</span>)</span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>post</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code> contrast                          estimate    SE df t.ratio p.value
- highlight_score - passive_score      10.97 4.157 30   2.638  0.0262
- highlight_score - underline_score     5.16 3.904 30   1.322  0.1961
- passive_score - underline_score      -5.81 0.901 30  -6.445  &lt;.0001
-
-P value adjustment: holm method for 3 tests </code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Pairwise Comparisons Different Reading Strategies</caption>
+<colgroup>
+<col style="width: 42%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 4%">
+<col style="width: 13%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">contrast</th>
+<th style="text-align: center;">estimate</th>
+<th style="text-align: center;">SE</th>
+<th style="text-align: center;">df</th>
+<th style="text-align: center;">t.ratio</th>
+<th style="text-align: center;">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">highlight_score - passive_score</td>
+<td style="text-align: center;">10.967742</td>
+<td style="text-align: center;">4.1569954</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">2.638382</td>
+<td style="text-align: center;">0.0261581</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">highlight_score - underline_score</td>
+<td style="text-align: center;">5.161290</td>
+<td style="text-align: center;">3.9039811</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">1.322058</td>
+<td style="text-align: center;">0.1961411</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">passive_score - underline_score</td>
+<td style="text-align: center;">-5.806452</td>
+<td style="text-align: center;">0.9009187</td>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">-6.445034</td>
+<td style="text-align: center;">0.0000012</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>Looking at the p-values of the pairwise comparisons, it can be noted that the there is a significant difference between the mean scores of the highlighting and passive reading strategies, as well as between the underlining and passive reading strategies. However, we still fail to reject the null hypothesis that the population mean values of the highlighting and underlining strategies are the same.</p>
@@ -561,92 +879,214 @@ P value adjustment: holm method for 3 tests </code></pre>
 <h2 class="anchored" data-anchor-id="additional-analysis-relationship-between-the-amount-of-text-highlighted-and-comprehension-scores">Additional Analysis: Relationship between the Amount of Text Highlighted and Comprehension Scores</h2>
 <p>We will now conduct an additional analysis to explore the relationship between the amount of text highlighted and the comprehension scores, as initial EDA revealed that annotation by highlighting text generally led to the highest test scores in the data. This analysis will help us understand if there is a correlation between the proportion of text annotated and the comprehension scores.</p>
 <p>We first merge the data containing the highlighted portion of text for each participant with their corresponding reading comprehension scores.</p>
+<p><strong>(Insert mention about how this information was extracted using a separate image processing pipeline that can be found in the github repo)</strong></p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>df_highlight <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"./data/participant_responses.xls"</span>, <span class="at">sheet =</span> <span class="st">"highlighted_portions"</span>)</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df_highlight)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>df_highlight <span class="ot">&lt;-</span> <span class="fu">read_excel</span>(<span class="st">"./data/participant_responses.xls"</span>, <span class="at">sheet =</span> <span class="st">"highlighted_portions"</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">head</span>(df_highlight), <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"First Six Rows of the Highlighted Portions Dataframe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 2
-     id highlighted_portion
-  &lt;dbl&gt;               &lt;dbl&gt;
-1     1                0.22
-2     2                0.27
-3     3                0.41
-4     4                0.32
-5     5                0.33
-6     6                0.62</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>First Six Rows of the Highlighted Portions Dataframe</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;">id</th>
+<th style="text-align: center;">highlighted_portion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">0.22</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">0.27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">0.41</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">0.32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">0.33</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0.62</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">head</span>(df), <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"First Six Rows of the Participant Responses Dataframe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 6
-     id   age gender passive_score underline_score highlight_score
-  &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;          &lt;dbl&gt;           &lt;dbl&gt;           &lt;dbl&gt;
-1     1    15 Male              60              60              90
-2     2    16 Female            60              70              90
-3     3    16 Female            90             100              80
-4     4    16 Male              70              80              90
-5     5    17 Male              70              80              90
-6     6    17 Male             100             100              60</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>First Six Rows of the Participant Responses Dataframe</caption>
+<colgroup>
+<col style="width: 6%">
+<col style="width: 7%">
+<col style="width: 12%">
+<col style="width: 22%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: center;">id</th>
+<th style="text-align: center;">age</th>
+<th style="text-align: center;">gender</th>
+<th style="text-align: center;">passive_score</th>
+<th style="text-align: center;">underline_score</th>
+<th style="text-align: center;">highlight_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">Male</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">Female</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">Female</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">80</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">Male</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">Male</td>
+<td style="text-align: center;">70</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">90</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">Male</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">60</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> </span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, highlight_score) <span class="sc">%&gt;%</span> </span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(df_highlight, <span class="at">by =</span> <span class="st">"id"</span>)</span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, highlight_score) <span class="sc">%&gt;%</span> </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(df_highlight, <span class="at">by =</span> <span class="st">"id"</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(<span class="fu">head</span>(df), <span class="at">align =</span> <span class="st">"c"</span>, <span class="at">caption =</span> <span class="st">"First Six Rows of the Merged Dataframe"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 3
-     id highlight_score highlighted_portion
-  &lt;dbl&gt;           &lt;dbl&gt;               &lt;dbl&gt;
-1     1              90                0.22
-2     2              90                0.27
-3     3              80                0.41
-4     4              90                0.32
-5     5              90                0.33
-6     6              60                0.62</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>First Six Rows of the Merged Dataframe</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;">id</th>
+<th style="text-align: center;">highlight_score</th>
+<th style="text-align: center;">highlighted_portion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">0.22</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">0.27</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">80</td>
+<td style="text-align: center;">0.41</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">0.32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">90</td>
+<td style="text-align: center;">0.33</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">60</td>
+<td style="text-align: center;">0.62</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>Based on this data, we can visualize the relationship between the amount of text highlighted and the comprehension scores. We can also try placing visualizations of different regression models to see which one best describes the relationship.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(highlighted_portion, highlight_score)) <span class="sc">+</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Linear fit</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(<span class="at">colour =</span> <span class="st">"Linear fit"</span>), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Quadratic fit</span></span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(<span class="at">colour =</span> <span class="st">"Quadratic fit"</span>), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> <span class="fu">poly</span>(x, <span class="dv">2</span>), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Logarithmic fit</span></span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(<span class="at">colour =</span> <span class="st">"Logarithmic fit"</span>), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> <span class="fu">log</span>(x), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> </span>
-<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Relationship between Amount of Text Highlighted and Obtained Scores"</span>, </span>
-<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Proportion of Text Highlighted"</span>, <span class="at">y =</span> <span class="st">"Comprehension Score (%)"</span></span>
-<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
-<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Supply colours *and* legend labels</span></span>
-<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(</span>
-<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">name   =</span> <span class="st">"Model type"</span>, </span>
-<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Linear fit"</span> <span class="ot">=</span> <span class="st">"red"</span>, </span>
-<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Quadratic fit"</span> <span class="ot">=</span> <span class="st">"blue"</span>, </span>
-<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Logarithmic fit"</span> <span class="ot">=</span> <span class="st">"darkseagreen"</span>)</span>
-<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
-<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">100</span>) <span class="sc">+</span> </span>
-<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
-<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(df, <span class="fu">aes</span>(highlighted_portion, highlight_score)) <span class="sc">+</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Linear fit</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(<span class="at">colour =</span> <span class="st">"Linear fit"</span>), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Quadratic fit</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(<span class="at">colour =</span> <span class="st">"Quadratic fit"</span>), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> <span class="fu">poly</span>(x, <span class="dv">2</span>), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Logarithmic fit</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="fu">aes</span>(<span class="at">colour =</span> <span class="st">"Logarithmic fit"</span>), <span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">formula =</span> y <span class="sc">~</span> <span class="fu">log</span>(x), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> </span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Relationship between Amount of Text Highlighted and Obtained Scores"</span>, </span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Proportion of Text Highlighted"</span>, <span class="at">y =</span> <span class="st">"Comprehension Score (%)"</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Supply colours *and* legend labels</span></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">name   =</span> <span class="st">"Model type"</span>, </span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Linear fit"</span> <span class="ot">=</span> <span class="st">"red"</span>, </span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Quadratic fit"</span> <span class="ot">=</span> <span class="st">"blue"</span>, </span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Logarithmic fit"</span> <span class="ot">=</span> <span class="st">"darkseagreen"</span>)</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">100</span>) <span class="sc">+</span> </span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="main_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="main_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -655,39 +1095,72 @@ P value adjustment: holm method for 3 tests </code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Show code</summary>
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit different regression models</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>linear_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(highlight_score <span class="sc">~</span> highlighted_portion, <span class="at">data =</span> df)</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>quad_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(highlight_score <span class="sc">~</span> <span class="fu">poly</span>(highlighted_portion, <span class="dv">2</span>), <span class="at">data =</span> df)</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>log_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(highlight_score <span class="sc">~</span> <span class="fu">log</span>(highlighted_portion), <span class="at">data =</span> df)</span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function to get important metrics for model comparison</span></span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>get_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>(model, label) {</span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="fu">glance</span>(model)</span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"model of fit"</span> <span class="ot">=</span> label, </span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"r squared"</span> <span class="ot">=</span> g<span class="sc">$</span>r.squared, </span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"adj. r squared"</span> <span class="ot">=</span> g<span class="sc">$</span>adj.r.squared, </span>
-<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"p value"</span> <span class="ot">=</span> g<span class="sc">$</span>p.value, </span>
-<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"rmse"</span> <span class="ot">=</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>(model<span class="sc">$</span>residuals<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Build a table to display the metrics for all models</span></span>
-<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>model_metrics <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_metrics</span>(linear_model, <span class="st">"Linear"</span>), </span>
-<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_metrics</span>(quad_model, <span class="st">"Quadratic"</span>), </span>
-<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_metrics</span>(log_model, <span class="st">"Logarithmic"</span>)</span>
-<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>model_metrics</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit different regression models</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>linear_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(highlight_score <span class="sc">~</span> highlighted_portion, <span class="at">data =</span> df)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>quad_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(highlight_score <span class="sc">~</span> <span class="fu">poly</span>(highlighted_portion, <span class="dv">2</span>), <span class="at">data =</span> df)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>log_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(highlight_score <span class="sc">~</span> <span class="fu">log</span>(highlighted_portion), <span class="at">data =</span> df)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper function to get important metrics for model comparison</span></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>get_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>(model, label) {</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  g <span class="ot">&lt;-</span> <span class="fu">glance</span>(model)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>    label, </span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    g<span class="sc">$</span>r.squared, </span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    g<span class="sc">$</span>adj.r.squared, </span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>    g<span class="sc">$</span>p.value, </span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sqrt</span>(<span class="fu">mean</span>(model<span class="sc">$</span>residuals<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Build a table to display the metrics for all models</span></span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>model_metrics <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_metrics</span>(linear_model, <span class="st">"Linear"</span>), </span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_metrics</span>(quad_model, <span class="st">"Quadratic"</span>), </span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">get_metrics</span>(log_model, <span class="st">"Logarithmic"</span>)</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(model_metrics,</span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Model of Fit"</span>, <span class="st">"R Squared"</span>, <span class="st">"Adjusted R Squared"</span>, <span class="st">"P-value"</span>, <span class="st">"RMSE"</span>),</span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">align =</span> <span class="st">"c"</span>,</span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Metrics for the Evaluation of Different Regression Models"</span></span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 3 × 5
-  `model of fit` `r squared` `adj. r squared` `p value`  rmse
-  &lt;chr&gt;                &lt;dbl&gt;            &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt;
-1 Linear             0.00406         -0.0303     0.734   12.9
-2 Quadratic          0.216            0.161      0.0329  11.4
-3 Logarithmic        0.0318          -0.00156    0.337   12.7</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Metrics for the Evaluation of Different Regression Models</caption>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Model of Fit</th>
+<th style="text-align: center;">R Squared</th>
+<th style="text-align: center;">Adjusted R Squared</th>
+<th style="text-align: center;">P-value</th>
+<th style="text-align: center;">RMSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">Linear</td>
+<td style="text-align: center;">0.0040574</td>
+<td style="text-align: center;">-0.0302854</td>
+<td style="text-align: center;">0.7335349</td>
+<td style="text-align: center;">12.86092</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">Quadratic</td>
+<td style="text-align: center;">0.2164759</td>
+<td style="text-align: center;">0.1605099</td>
+<td style="text-align: center;">0.0328650</td>
+<td style="text-align: center;">11.40725</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">Logarithmic</td>
+<td style="text-align: center;">0.0318249</td>
+<td style="text-align: center;">-0.0015604</td>
+<td style="text-align: center;">0.3369654</td>
+<td style="text-align: center;">12.68036</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>The table above shows the important metrics for each regression model. The R-squared and adjusted R-squared values indicate how well the model explains the variance in the data. The p-value indicates whether the model is statistically significant, and the RMSE provides a measure of the model’s prediction error.</p>
